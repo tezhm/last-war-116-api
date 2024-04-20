@@ -27,6 +27,7 @@ export class ScheduleController {
     }
 
     public async queryScheduled(title: string, start: number, end: number): Promise<JsonResponse<{ scheduled: Scheduled[] }>> {
+        // Only allowing querying max range of 24 hours for now
         if (!titles.has(title) || start > end || (end - start) > (24 * 60 * 60 * 1000)) {
             return error(undefined, 400);
         }
@@ -49,11 +50,21 @@ export class ScheduleController {
         const currentTime = (new Date()).getTime();
         const oneDayInMillis = 24 * 60 * 60 * 1000;
 
+        // Can only reserve 15 minute slots and can only reserve slot within next 24 hours
         if (!titles.has(title) || (timestamp % 900000) !== 0 || timestamp < currentTime || timestamp > currentTime + oneDayInMillis) {
             return error(undefined, 400);
         }
 
         try {
+            const alreadyReservedSql = `
+                SELECT id FROM schedules WHERE user_fk = ? AND timestamp > NOW()
+            `;
+            const alreadyReserved = await MysqlConnectionPool.query(alreadyReservedSql, [userId]);
+
+            if (alreadyReserved.length > 0) {
+                return error({ errors: [{ type: "conflict", msg: "Can only have one pending reservation at a time" }] }, 409);
+            }
+
             const reserveScheduleSql = `
                 INSERT INTO schedules (created_at, title, user_fk, timestamp)
                 VALUES (NOW(), ?, ?, ?)

@@ -8,7 +8,8 @@ module.exports = {
                timestamp DATETIME NOT NULL,
                PRIMARY KEY (id),
                CONSTRAINT schedules_user_fk FOREIGN KEY (user_fk) REFERENCES users (id),
-               CONSTRAINT schedules_title_unique UNIQUE (title, timestamp)
+               CONSTRAINT schedules_title_unique UNIQUE (title, timestamp),
+               INDEX schedules_user_timestamp_index UNIQUE (user_fk, timestamp)
            ) ENGINE=INNODB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4`,
     "down": "DROP TABLE schedules"
 }

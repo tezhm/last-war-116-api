@@ -31,6 +31,7 @@ export function authentication(): (req: Request<any, any, any, { _at: string }>,
             JOIN access_tokens
             ON users.id = access_tokens.user_fk
             WHERE access_tokens.access_token = ?
+            AND access_tokens.expires_at > NOW()
         `;
         const user = await MysqlConnectionPool.query<{ userId: number, admin: number }>(queryUserSql, [accessToken]);
 
