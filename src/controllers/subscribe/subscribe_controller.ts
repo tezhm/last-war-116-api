@@ -2,10 +2,7 @@ import { randomBytes, randomUUID } from "crypto";
 import { Authentication } from "../../infrastructure/authentication/authentication";
 import { MysqlConnection } from "../../infrastructure/database/mysql_connection";
 import { MysqlConnectionPool } from "../../infrastructure/database/mysql_connection_pool";
-import { Logger } from "../../infrastructure/logging/logger";
 import { JsonResponse, success } from "../../infrastructure/util/json_response";
-
-const logger = new Logger("SUBSCRIBE_CONTROLLER");
 
 export class SubscribeController {
     private static instance: SubscribeController|null = null;

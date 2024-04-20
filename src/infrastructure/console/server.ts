@@ -12,6 +12,7 @@ import { SubscribeController } from "../../controllers/subscribe/subscribe_contr
 import { MysqlConnectionPool } from "../database/mysql_connection_pool";
 import { Logger } from "../logging/logger";
 import { connectionLogger } from "../middleware/server_logging";
+import { LoginController } from "../../controllers/login/login_controller";
 
 const logger = new Logger("SERVER");
 
@@ -41,6 +42,19 @@ app.post(
             req.body["username"],
             req.body["password"],
             req.body["inGameName"]
+        );
+        return res.status(result.status).json(result.body);
+    }
+);
+
+app.post(
+    "/v1/login",
+    body("username").isString().isLength({ min: 4, max: 20 }),
+    body("password").isString().isLength({ min: 8, max: 20 }),
+    async (req: Request, res: Response, next: NextFunction) => {
+        const result = await LoginController.getInstance().login(
+            req.body["username"],
+            req.body["password"]
         );
         return res.status(result.status).json(result.body);
     }
