@@ -47,11 +47,13 @@ export class ScheduleController {
     }
 
     public async reserve(title: string, timestamp: number, userId: number): Promise<JsonResponse> {
-        const currentTime = (new Date()).getTime();
         const oneDayInMillis = 24 * 60 * 60 * 1000;
+        const currentTime = new Date();
+        currentTime.setMinutes(Math.floor(currentTime.getMinutes() / 15) * 15, 0);
+        const startTime = currentTime.getTime();
 
         // Can only reserve 15 minute slots and can only reserve slot within next 24 hours
-        if (!titles.has(title) || (timestamp % 900000) !== 0 || timestamp < currentTime || timestamp > currentTime + oneDayInMillis) {
+        if (!titles.has(title) || (timestamp % 900000) !== 0 || timestamp < startTime || timestamp > startTime + oneDayInMillis) {
             return error(undefined, 400);
         }
 
