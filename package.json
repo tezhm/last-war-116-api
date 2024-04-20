@@ -1,0 +1,21 @@
+{
+  "name": "last-war-116-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/infrastructure/console/server.ts",
+  "scripts": {
+    "start": "rm -rf dist && npx tsc && node dist/infrastructure/console/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/express": "^4.17.1",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.17.1",
+    "express-validator": "^7.0.1"
+  }
+}
