@@ -21,3 +21,8 @@ export function validateInt(value: any, _default: number|undefined = undefined):
 
     return parseInt(value);
 }
+
+export function timestampToString(timestamp: number): string {
+    const date = new Date(timestamp);
+    return date.toISOString().slice(0, 19).replace("T", " ");
+}
