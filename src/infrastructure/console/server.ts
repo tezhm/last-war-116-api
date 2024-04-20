@@ -23,9 +23,13 @@ const app = express();
 
 // Middleware
 app.use(connectionLogger());
-app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+// Enable cors for localhost requests
+if (server.DEV_MODE) {
+    app.use(cors());
+}
 
 app.post(
     "/v1/subscribe",
