@@ -7,8 +7,7 @@ export const ACCESS_TOKEN_KEY = "_at";
 export const IS_ADMIN_KEY = "_ia";
 export const USER_ID_KEY = "_ui";
 
-// TODO: cache access tokens so don't have to decode each request
-// TODO: when admin is added, invalidate cache
+let accessTokenCache: Record<string, string> = {};
 
 export function authentication(): (req: Request<any, any, any, { _at: string }>, res: Response, next: NextFunction) => void {
     return async (req: Request, res: Response, next: NextFunction) => {
@@ -18,11 +17,19 @@ export function authentication(): (req: Request<any, any, any, { _at: string }>,
             return res.status(401).json();
         }
 
-        const accessToken = Authentication.decodeToken(token);
+        const accessToken = (token in accessTokenCache) ? accessTokenCache[token] : Authentication.decodeToken(token);
 
         if (accessToken === null) {
             return res.status(401).json();
         }
+
+        // Dumb cache invalidation to protect against memory leaks
+        if (Object.keys(accessTokenCache).length > 1000) {
+            accessTokenCache = {};
+        }
+
+        // Decoding token is expensive so caching result
+        accessTokenCache[token] = accessToken;
 
         const queryUserSql = `
             SELECT users.id AS userId,
