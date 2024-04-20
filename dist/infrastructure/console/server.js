@@ -16,16 +16,27 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const body_parser_1 = __importDefault(require("body-parser"));
+const cors_1 = __importDefault(require("cors"));
 const express_1 = __importDefault(require("express"));
+const express_validator_1 = require("express-validator");
 const server_1 = require("../../config/server");
+const subscribe_controller_1 = require("../../controllers/subscribe/subscribe_controller");
+const mysql_connection_pool_1 = require("../database/mysql_connection_pool");
 const logger_1 = require("../logging/logger");
+const server_logging_1 = require("../middleware/server_logging");
 const logger = new logger_1.Logger("SERVER");
+// Warm components
+mysql_connection_pool_1.MysqlConnectionPool.init();
+// Build server
 const app = (0, express_1.default)();
 // Middleware
+app.use((0, server_logging_1.connectionLogger)());
+app.use((0, cors_1.default)());
 app.use(body_parser_1.default.urlencoded({ extended: false }));
 app.use(body_parser_1.default.json());
-app.get("/v1/test", (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    return res.status(200).json({ test: 123 });
+app.post("/v1/subscribe", (0, express_validator_1.body)("username").isString().isLength({ min: 4, max: 20 }), (0, express_validator_1.body)("password").isString().isLength({ min: 8, max: 20 }), (0, express_validator_1.body)("inGameName").isString().isLength({ min: 2, max: 20 }), (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield subscribe_controller_1.SubscribeController.getInstance().subscribe(req.body["username"], req.body["password"], req.body["inGameName"]);
+    return res.status(result.status).json(result.body);
 }));
 // Error handling
 app.use((err, req, res, _) => {
