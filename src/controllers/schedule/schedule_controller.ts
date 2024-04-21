@@ -85,4 +85,14 @@ export class ScheduleController {
             return error(undefined, 500);
         }
     }
+
+    public async cancel(title: string, timestamp: number, userId: number): Promise<JsonResponse> {
+        try {
+            const reserveScheduleSql = "DELETE FROM schedules WHERE title = ? AND user_fk = ? AND timestamp = ? AND timestamp > NOW()";
+            await MysqlConnectionPool.execute(reserveScheduleSql, [title, userId, timestampToString(timestamp)]);
+            return success();
+        } catch (e) {
+            return error(undefined, 500);
+        }
+    }
 }

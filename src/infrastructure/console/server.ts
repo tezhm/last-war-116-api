@@ -13,7 +13,7 @@ import { MysqlConnectionPool } from "../database/mysql_connection_pool";
 import { LoginController } from "../../controllers/login/login_controller";
 import { ScheduleController } from "../../controllers/schedule/schedule_controller";
 import { Logger } from "../logging/logger";
-import { authentication, USER_ID_KEY } from "../middleware/authentication";
+import { authentication, IS_ADMIN_KEY, USER_ID_KEY } from "../middleware/authentication";
 import { connectionLogger } from "../middleware/server_logging";
 import { UserController } from "../../controllers/user/user_controller";
 
@@ -84,6 +84,66 @@ app.get(
     }
 );
 
+app.post(
+    "/v1/user/change-in-game-name",
+    authentication(),
+    body("inGameName").isString().isLength({ min: 2, max: 20 }),
+    async (req: Request, res: Response, next: NextFunction) => {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const result = await UserController.getInstance().changeInGameName(
+            res.locals[USER_ID_KEY],
+            req.body["inGameName"]
+        );
+        return res.status(result.status).json(result.body);
+    }
+);
+
+app.post(
+    "/v1/user/change-password",
+    authentication(),
+    body("currentPassword").isString().isLength({ min: 8, max: 20 }),
+    body("newPassword").isString().isLength({ min: 8, max: 20 }),
+    async (req: Request, res: Response, next: NextFunction) => {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const result = await UserController.getInstance().changePassword(
+            res.locals[USER_ID_KEY],
+            req.body["currentPassword"],
+            req.body["newPassword"]
+        );
+        return res.status(result.status).json(result.body);
+    }
+);
+
+app.post(
+    "/v1/user/verify",
+    authentication(),
+    body("userId").notEmpty().isNumeric(),
+    async (req: Request, res: Response, next: NextFunction) => {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const result = await UserController.getInstance().verify(
+            Number(req.body["userId"]),
+            res.locals[USER_ID_KEY],
+            res.locals[IS_ADMIN_KEY]
+        );
+        return res.status(result.status).json(result.body);
+    }
+);
+
 app.get(
     "/v1/schedule/:title/index",
     authentication(),
@@ -108,7 +168,7 @@ app.get(
 app.post(
     "/v1/schedule/:title/reserve/:timestamp",
     authentication(),
-    async (req: Request<{ title: string, timestamp: number }, any, any, { _at: string }>, res: Response, next: NextFunction) => {
+    async (req: Request<{ title: string, timestamp: number }>, res: Response, next: NextFunction) => {
         const errors = validationResult(req);
 
         if (!errors.isEmpty()) {
@@ -116,6 +176,25 @@ app.post(
         }
 
         const result = await ScheduleController.getInstance().reserve(
+            req.params.title,
+            Number(req.params.timestamp),
+            res.locals[USER_ID_KEY]
+        );
+        return res.status(result.status).json(result.body);
+    }
+);
+
+app.post(
+    "/v1/schedule/:title/cancel/:timestamp",
+    authentication(),
+    async (req: Request<{ title: string, timestamp: number }>, res: Response, next: NextFunction) => {
+        const errors = validationResult(req);
+
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
+
+        const result = await ScheduleController.getInstance().cancel(
             req.params.title,
             Number(req.params.timestamp),
             res.locals[USER_ID_KEY]

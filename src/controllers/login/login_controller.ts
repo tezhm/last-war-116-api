@@ -1,8 +1,6 @@
-import { randomBytes, randomUUID } from "crypto";
+import { randomUUID } from "crypto";
 import { Authentication } from "../../infrastructure/authentication/authentication";
-import { MysqlConnection } from "../../infrastructure/database/mysql_connection";
 import { MysqlConnectionPool } from "../../infrastructure/database/mysql_connection_pool";
-import { Logger } from "../../infrastructure/logging/logger";
 import { error, JsonResponse, success } from "../../infrastructure/util/json_response";
 
 export class LoginController {
