@@ -15,6 +15,7 @@ import { ScheduleController } from "../../controllers/schedule/schedule_controll
 import { Logger } from "../logging/logger";
 import { authentication, USER_ID_KEY } from "../middleware/authentication";
 import { connectionLogger } from "../middleware/server_logging";
+import { UserController } from "../../controllers/user/user_controller";
 
 const logger = new Logger("SERVER");
 
@@ -70,6 +71,15 @@ app.post(
             req.body["username"],
             req.body["password"]
         );
+        return res.status(result.status).json(result.body);
+    }
+);
+
+app.get(
+    "/v1/user/info",
+    authentication(),
+    async (req: Request, res: Response, next: NextFunction) => {
+        const result = await UserController.getInstance().queryInfo(res.locals[USER_ID_KEY]);
         return res.status(result.status).json(result.body);
     }
 );

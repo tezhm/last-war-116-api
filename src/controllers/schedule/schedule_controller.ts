@@ -28,8 +28,8 @@ export class ScheduleController {
     }
 
     public async queryScheduled(title: string, start: number, end: number): Promise<JsonResponse<{ info: { slotInterval: number }, scheduled: Scheduled[] }>> {
-        // Only allowing querying max range of 24 hours for now
-        if (!titles.has(title) || start > end || (end - start) > (24 * 60 * 60 * 1000)) {
+        // Only allowing querying max range of 25 hours for now
+        if (!titles.has(title) || start > end || (end - start) > (25 * 60 * 60 * 1000)) {
             return error(undefined, 400);
         }
 
