@@ -53,7 +53,7 @@ export class ScheduleController {
     public async reserve(title: string, timestamp: number, userId: number): Promise<JsonResponse> {
         const oneDayInMillis = 24 * 60 * 60 * 1000;
         const currentTime = new Date();
-        currentTime.setMinutes(Math.floor(currentTime.getMinutes() / schedule.SLOT_INTERVAL_MINS) * schedule.SLOT_INTERVAL_MINS, 0);
+        currentTime.setMinutes(Math.floor(currentTime.getMinutes() / schedule.SLOT_INTERVAL_MINS) * schedule.SLOT_INTERVAL_MINS, 0, 0);
         const startTime = currentTime.getTime();
 
         // Check slot interval matches and within next 24 hours
