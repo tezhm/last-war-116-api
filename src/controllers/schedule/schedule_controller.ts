@@ -1,6 +1,7 @@
+import { schedule } from "../../config/schedule";
 import { MysqlConnectionPool } from "../../infrastructure/database/mysql_connection_pool";
-import { error, JsonResponse, success } from "../../infrastructure/util/json_response";
 import { timestampToString } from "../../infrastructure/util/helpers";
+import { error, JsonResponse, success } from "../../infrastructure/util/json_response";
 
 const titles = new Set<string>([
     "STRATEGY",
@@ -26,7 +27,7 @@ export class ScheduleController {
         return ScheduleController.instance;
     }
 
-    public async queryScheduled(title: string, start: number, end: number): Promise<JsonResponse<{ scheduled: Scheduled[] }>> {
+    public async queryScheduled(title: string, start: number, end: number): Promise<JsonResponse<{ info: { slotInterval: number }, scheduled: Scheduled[] }>> {
         // Only allowing querying max range of 24 hours for now
         if (!titles.has(title) || start > end || (end - start) > (24 * 60 * 60 * 1000)) {
             return error(undefined, 400);
@@ -43,18 +44,20 @@ export class ScheduleController {
             AND schedules.timestamp <= ?
         `;
         const scheduled = await MysqlConnectionPool.query<Scheduled>(queryScheduleSql, [title, timestampToString(start), timestampToString(end)]);
-        return success({ scheduled: scheduled });
+        return success({
+            info: { slotInterval: schedule.SLOT_INTERVAL_MINS },
+            scheduled: scheduled,
+        });
     }
 
     public async reserve(title: string, timestamp: number, userId: number): Promise<JsonResponse> {
-        const slotInterval = 10; // 10 minute slots
         const oneDayInMillis = 24 * 60 * 60 * 1000;
         const currentTime = new Date();
-        currentTime.setMinutes(Math.floor(currentTime.getMinutes() / slotInterval) * slotInterval, 0);
+        currentTime.setMinutes(Math.floor(currentTime.getMinutes() / schedule.SLOT_INTERVAL_MINS) * schedule.SLOT_INTERVAL_MINS, 0);
         const startTime = currentTime.getTime();
 
         // Check slot interval matches and within next 24 hours
-        if (!titles.has(title) || (timestamp % (slotInterval * 60 * 1000)) !== 0 || timestamp < startTime || timestamp > startTime + oneDayInMillis) {
+        if (!titles.has(title) || (timestamp % (schedule.SLOT_INTERVAL_MINS * 60 * 1000)) !== 0 || timestamp < startTime || timestamp > startTime + oneDayInMillis) {
             return error(undefined, 400);
         }
 
