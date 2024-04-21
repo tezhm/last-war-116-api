@@ -87,6 +87,10 @@ export class ScheduleController {
     }
 
     public async cancel(title: string, timestamp: number, userId: number): Promise<JsonResponse> {
+        if (timestamp < (new Date()).getTime()) {
+            return error({ errors: [{ type: "conflict", msg: "Cannot cancel already started reservations" }] }, 409);
+        }
+
         try {
             const reserveScheduleSql = "DELETE FROM schedules WHERE title = ? AND user_fk = ? AND timestamp = ? AND timestamp > NOW()";
             await MysqlConnectionPool.execute(reserveScheduleSql, [title, userId, timestampToString(timestamp)]);
