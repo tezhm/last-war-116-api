@@ -63,9 +63,9 @@ export class ScheduleController {
 
         try {
             const alreadyReservedSql = `
-                SELECT id FROM schedules WHERE user_fk = ? AND timestamp > NOW()
+                SELECT id FROM schedules WHERE title = ? AND user_fk = ? AND timestamp > NOW()
             `;
-            const alreadyReserved = await MysqlConnectionPool.query(alreadyReservedSql, [userId]);
+            const alreadyReserved = await MysqlConnectionPool.query(alreadyReservedSql, [title, userId]);
 
             if (alreadyReserved.length > 0) {
                 return error({ errors: [{ type: "conflict", msg: "Can only have one pending reservation at a time" }] }, 409);

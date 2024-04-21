@@ -14,6 +14,7 @@ module.exports = {
                promoted_by_fk INT(11) NULL,
                PRIMARY KEY (id),
                CONSTRAINT users_username_unique UNIQUE (username),
+               CONSTRAINT users_in_game_name_unique UNIQUE (in_game_name),
                CONSTRAINT users_verified_by_fk FOREIGN KEY (verified_by_fk) REFERENCES users (id),
                CONSTRAINT users_promoted_by_fk FOREIGN KEY (promoted_by_fk) REFERENCES users (id)
            ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4`,

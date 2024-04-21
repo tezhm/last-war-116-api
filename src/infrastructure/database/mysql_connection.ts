@@ -31,7 +31,11 @@ export class MysqlConnection {
                         return reject(error);
                     }
 
-                    await callback(this);
+                    try {
+                        await callback(this);
+                    } catch (e) {
+                        return reject(e);
+                    }
 
                     this.connection.commit((error: MysqlError|null) => {
                         if (error) {
