@@ -53,7 +53,7 @@ export class ScheduleController {
         currentTime.setMinutes(Math.floor(currentTime.getMinutes() / slotInterval) * slotInterval, 0);
         const startTime = currentTime.getTime();
 
-        // Can only reserve 10 minute slots and can only reserve slot within next 24 hours
+        // Check slot interval matches and within next 24 hours
         if (!titles.has(title) || (timestamp % (slotInterval * 60 * 1000)) !== 0 || timestamp < startTime || timestamp > startTime + oneDayInMillis) {
             return error(undefined, 400);
         }
