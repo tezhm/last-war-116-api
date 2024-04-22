@@ -76,6 +76,14 @@ app.post(
 );
 
 app.get(
+    "/v1/authenticate",
+    authentication(),
+    (req: Request, res: Response, next: NextFunction) => {
+        return res.status(200).json(undefined);
+    }
+);
+
+app.get(
     "/v1/user/info",
     authentication(),
     async (req: Request, res: Response, next: NextFunction) => {

@@ -10,14 +10,18 @@ export class Authentication {
     }
 
     public static decodeToken(token: string): string|null {
-        const decoded = Buffer.from(token, "base64").toString("utf-8");
-        const jwtToken = verify(decoded, jwt.JWT_SECRET);
+        try {
+            const decoded = Buffer.from(token, "base64").toString("utf-8");
+            const jwtToken = verify(decoded, jwt.JWT_SECRET);
 
-        if (typeof jwtToken === "string") {
+            if (typeof jwtToken === "string") {
+                return null;
+            }
+
+            return jwtToken.accessToken;
+        } catch {
             return null;
         }
-
-        return jwtToken.accessToken;
     }
 
     public static async hashPassword(password: string, salt: string, iterations: number): Promise<string> {
