@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import { Authentication } from "../../infrastructure/authentication/authentication";
 import { MysqlConnectionPool } from "../../infrastructure/database/mysql_connection_pool";
 import { error, JsonResponse, success } from "../../infrastructure/util/json_response";
+import { TwoFactorAuth } from "../../infrastructure/util/two_factor_auth";
 
 export class LoginController {
     private static instance: LoginController|null = null;
@@ -14,17 +15,21 @@ export class LoginController {
         return LoginController.instance;
     }
 
-    public async login(username: string, password: string): Promise<JsonResponse<{ accessToken: string }>> {
-        const queryUserSql = "SELECT id, password_hash, password_salt, password_iterations FROM users WHERE username = ?";
-        const user = await MysqlConnectionPool.query<{ id: number, password_hash: string, password_salt: string, password_iterations: number }>(queryUserSql, [username]);
+    public async login(username: string, token: string): Promise<JsonResponse<{ accessToken: string }>> {
+        const queryUserSql = "SELECT id, auth_code_url FROM users WHERE username = ?";
+        const user = await MysqlConnectionPool.query<{ id: number, auth_code_url: string }>(queryUserSql, [username]);
 
         if (user.length === 0) {
             return error(undefined, 401);
         }
 
-        const passwordHash = await Authentication.hashPassword(password, user[0].password_salt, user[0].password_iterations);
+        let secret = user[0].auth_code_url.split("secret=")[1];
 
-        if (passwordHash !== user[0].password_hash) {
+        if (secret.includes("&")) {
+            secret = secret.split("&")[0];
+        }
+
+        if (!TwoFactorAuth.getInstance().verifyTotp(token, secret)) {
             return error(undefined, 401);
         }
 

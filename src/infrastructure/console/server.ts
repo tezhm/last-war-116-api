@@ -59,7 +59,7 @@ app.post(
 app.post(
     "/v1/login",
     body("username").isString().isLength({ min: 4, max: 20 }),
-    body("password").isString().isLength({ min: 8, max: 20 }),
+    body("token").isString().isLength({ min: 6, max: 6 }),
     async (req: Request, res: Response, next: NextFunction) => {
         const errors = validationResult(req);
 
@@ -69,7 +69,7 @@ app.post(
 
         const result = await LoginController.getInstance().login(
             req.body["username"],
-            req.body["password"]
+            req.body["token"]
         );
         return res.status(result.status).json(result.body);
     }
