@@ -104,27 +104,6 @@ app.post(
 );
 
 app.post(
-    "/v1/user/change-password",
-    authentication(),
-    body("currentPassword").isString().isLength({ min: 8, max: 20 }),
-    body("newPassword").isString().isLength({ min: 8, max: 20 }),
-    async (req: Request, res: Response, next: NextFunction) => {
-        const errors = validationResult(req);
-
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-
-        const result = await UserController.getInstance().changePassword(
-            res.locals[USER_ID_KEY],
-            req.body["currentPassword"],
-            req.body["newPassword"]
-        );
-        return res.status(result.status).json(result.body);
-    }
-);
-
-app.post(
     "/v1/user/verify",
     authentication(),
     body("userId").notEmpty().isNumeric(),

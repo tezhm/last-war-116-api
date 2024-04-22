@@ -1,8 +1,5 @@
 import { MysqlConnectionPool } from "../../infrastructure/database/mysql_connection_pool";
 import { error, JsonResponse, success } from "../../infrastructure/util/json_response";
-import { timestampToString } from "../../infrastructure/util/helpers";
-import { Authentication } from "../../infrastructure/authentication/authentication";
-import { randomBytes } from "crypto";
 
 export class UserController {
     private static instance: UserController|null = null;
@@ -19,6 +16,7 @@ export class UserController {
         const queryUserSql = `
             SELECT admin AS isAdmin,
                    in_game_name AS inGameName,
+                   auth_code_url AS otpAuthCode,
                    verification_code AS verificationCode,
                    verified AS isVerified
             FROM users
@@ -27,6 +25,7 @@ export class UserController {
         const user = await MysqlConnectionPool.query<{
             isAdmin: number,
             inGameName: string,
+            otpAuthCode: string,
             verificationCode: string,
             isVerified: number
         }>(queryUserSql, [userId]);
@@ -38,6 +37,7 @@ export class UserController {
         return success({
             isAdmin: Boolean(user[0].isAdmin),
             inGameName: user[0].inGameName,
+            otpAuthCode: user[0].otpAuthCode,
             verificationCode: user[0].verificationCode,
             isVerified: Boolean(user[0].isVerified),
         });
@@ -55,29 +55,6 @@ export class UserController {
 
             return error(undefined, 500);
         }
-    }
-
-    public async changePassword(userId: number, currentPassword: string, newPassword: string): Promise<JsonResponse> {
-        const queryUserSql = "SELECT password_hash, password_salt, password_iterations FROM users WHERE id = ?";
-        const user = await MysqlConnectionPool.query<{ password_hash: string, password_salt: string, password_iterations: number }>(queryUserSql, [userId]);
-
-        if (user.length === 0) {
-            return error(undefined, 401);
-        }
-
-        const currentPasswordHash = await Authentication.hashPassword(currentPassword, user[0].password_salt, user[0].password_iterations);
-
-        if (currentPasswordHash !== user[0].password_hash) {
-            return error();
-        }
-
-        const salt = randomBytes(128).toString("base64");
-        const iterations = 1000;
-        const newPasswordHash = await Authentication.hashPassword(newPassword, salt, iterations);
-
-        const updatePasswordSql = "UPDATE users SET password_hash = ?, password_salt = ?, password_iterations = ? WHERE id = ?";
-        await MysqlConnectionPool.execute(updatePasswordSql, [newPasswordHash, salt, iterations, userId]);
-        return success();
     }
 
     public async verify(toVerifyId: number, verifierId: number, isAdmin: number): Promise<JsonResponse> {
