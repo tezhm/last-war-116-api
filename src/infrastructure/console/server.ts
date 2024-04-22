@@ -38,8 +38,8 @@ if (server.DEV_MODE) {
 app.post(
     "/v1/subscribe",
     body("username").isString().isLength({ min: 4, max: 20 }),
-    body("password").isString().isLength({ min: 8, max: 20 }),
     body("inGameName").isString().isLength({ min: 2, max: 20 }),
+    body("otpAuthCode").isString().notEmpty(),
     async (req: Request, res: Response, next: NextFunction) => {
         const errors = validationResult(req);
 
@@ -49,8 +49,8 @@ app.post(
 
         const result = await SubscribeController.getInstance().subscribe(
             req.body["username"],
-            req.body["password"],
-            req.body["inGameName"]
+            req.body["inGameName"],
+            req.body["otpAuthCode"]
         );
         return res.status(result.status).json(result.body);
     }
